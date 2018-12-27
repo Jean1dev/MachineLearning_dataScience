@@ -1,14 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Dec 23 19:39:04 2018
-
 @author: jeanfernandes
 criptomoeda
+jeancoin
 """
 
 import hashlib
 import time
+
+class JeanCoin:
+
+    def __init__(self):
+        self.blocs = []
+        self.setGenesisBlock()
+
+    def getAll(self):
+        return self.blocs[:]
+
+    def setGenesisBlock(self):    
+        self.addNewBlock('Primeiro Bloco')
+
+    def addNewBlock(self, data, previousHash = 0):
+        ts = int(round(time.time() * 1000))
+        bloco = Block(0, "", ts, data, self.calculateHash(str(0), str(previousHash), str(ts), data))
+        self.blocs.append(bloco)
+
+    @staticmethod
+    def calculateHash(index, previousHash, timestamp, data):
+        return hashlib.sha256((index + previousHash + timestamp + data).encode()).hexdigest
 
 class Block:
 
@@ -20,11 +40,7 @@ class Block:
         self.hash = hash
 
 
-
-def calculateHash(index, previousHash, timestamp, data):
-    return hashlib.sha256(index + previousHash + timestamp + data).hexdigest
-
-ts = int(round(time.time() * 1000))
-genesis = Block(0, "", ts, "vazio", calculateHash(
-    0, "", ts, "vazio"
-))
+if __name__ == '__main__':
+    blockchain = JeanCoin()
+    blockchain.addNewBlock('vai filhao')
+    print(blockchain.getAll())
