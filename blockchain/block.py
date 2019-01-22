@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+ #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 @author: jeanfernandes
@@ -11,20 +11,31 @@ import time
 
 class JeanCoin:
 
-    def __init__(self):
-        self.blocs = []
-        self.setGenesisBlock()
+    def __init__(self, genesisBlock):
+        self.__chain = []
+        self.__chain.append(genesisBlock)
 
-    def getAll(self):
-        return self.blocs[:]
+    def getLatestBlock(self):
+        return self.__chain[len(self.__chain) - 1]
 
-    def setGenesisBlock(self):    
-        self.addNewBlock('Primeiro Bloco')
+    def generateNextBlock(self, data):
+        previous = self.getLatestBlock()
+        nextIndex = previous.index + 1
+        nextTs = int(round(time.time() * 1000))
+        nextPreviousHash = previous.hash
+        newBlock = Block(nextIndex, nextPreviousHash, nextTs, data,
+            calculateHash(nextIndex, nextPreviousHash, nextTs, data))
+        
+        if self.validatingBlock(newBlock) == True:
+            self.__chain.append(newBlock)
 
-    def addNewBlock(self, data, previousHash = 0):
-        ts = int(round(time.time() * 1000))
-        bloco = Block(0, "", ts, data, self.calculateHash(str(0), str(previousHash), str(ts), data))
-        self.blocs.append(bloco)
+    def validatingBlock(self, newBlock):
+        previousBlock = self.getLatestBlock()
+        if previousBlock.index + 1 != newBlock.index:
+            return False
+        elif previousBlock.hash != newBlock.previousHash:
+            return False
+        return True
 
     @staticmethod
     def calculateHash(index, previousHash, timestamp, data):
@@ -39,8 +50,11 @@ class Block:
         self.data = data
         self.hash = hash
 
+def calculateHash(index, previousHash, timestamp, data):
+    return hashlib.sha256(str(index) + previousHash + str(timestamp) + data).hexdigest()
 
 if __name__ == '__main__':
-    blockchain = JeanCoin()
-    blockchain.addNewBlock('vai filhao')
-    print(blockchain.getAll())
+    ts = int(round(time.time() * 1000))
+    genesisBlock = Block(0, "", ts, "genesis",
+    calculateHash(0, "", ts, "genesis"))
+    
