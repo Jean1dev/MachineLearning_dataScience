@@ -8,6 +8,7 @@ jeancoin
 
 import hashlib
 import time
+import binascii
 
 class JeanCoin:
 
@@ -37,21 +38,38 @@ class JeanCoin:
             return False
         return True
 
+    def hashMatchesDifficulty(self, hash, diff):
+        hashBin = binascii.unhexlify(hash)
+        requiredPrefix = '0' * int(diff)
+        return hashBin.startswith(requiredPrefix)
+
+    def findBlock(self, index, previousHash, ts, data, diff):
+        nonce = 0
+        while True: 
+            hash = calculateHash(index, previousHash, ts, data, diff, nonce)
+            if self.hashMatchesDifficulty(hash, diff):
+                block = Block(index, previousHash, ts, data, diff, nonce)
+                return block
+            nonce = nonce + 1
+
     @staticmethod
     def calculateHash(index, previousHash, timestamp, data):
         return hashlib.sha256((index + previousHash + timestamp + data).encode()).hexdigest
 
 class Block:
 
-    def __init__(self, index, previousHash, timestamp, data, hash):
+    def __init__(self, index, previousHash, timestamp, data, hash, difficulty, nonce):
         self.index = index
         self.previousHash = previousHash
         self.timestamp = timestamp
         self.data = data
         self.hash = hash
+        self.difficulty = difficulty
+        self.nonce = nonce
 
-def calculateHash(index, previousHash, timestamp, data):
-    return hashlib.sha256(str(index) + previousHash + str(timestamp) + data).hexdigest()
+def calculateHash(index, previousHash, timestamp, data, difficulty, nonce):
+    return hashlib.sha256(
+        (str(index) + previousHash + str(timestamp) + data + str(difficulty) + str(nonce)).encode()).hexdigest()
 
 if __name__ == '__main__':
     ts = int(round(time.time() * 1000))
