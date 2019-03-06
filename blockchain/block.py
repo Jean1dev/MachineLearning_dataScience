@@ -15,6 +15,27 @@ class JeanCoin:
     def __init__(self, genesisBlock):
         self.__chain = []
         self.__chain.append(genesisBlock)
+        self.DIFFICULTY_ADJUSTMENT = 10
+        self.BLOCK_INTERVAL = 120
+
+    def getDifficulty(self):
+        latestBlock = self.getLatestBlock()
+        if latestBlock.index % self.DIFFICULTY_ADJUSTMENT == 0 and latestBlock.index != 0:
+            return self.getAjustedDifficulty()
+        else:
+            return latestBlock.difficulty
+
+    def getAjustedDifficulty(self):
+        latestBlock = self.getLatestBlock()
+        previousAdjustmentBlock = self.__chain[len(self.__chain) - self.DIFFICULTY_ADJUSTMENT]
+        timeExpected = self.BLOCK_INTERVAL * self.DIFFICULTY_ADJUSTMENT
+        timeTaken = latestBlock.timestamp - previousAdjustmentBlock.timestamp
+        if timeTaken < timeExpected * 2:
+            return previousAdjustmentBlock.difficulty + 1
+        elif timeTaken > timeExpected * 2:
+            return previousAdjustmentBlock.difficulty - 1
+        else:
+            return previousAdjustmentBlock.difficulty
 
     def getLatestBlock(self):
         return self.__chain[len(self.__chain) - 1]
@@ -73,6 +94,6 @@ def calculateHash(index, previousHash, timestamp, data, difficulty, nonce):
 
 if __name__ == '__main__':
     ts = int(round(time.time() * 1000))
-    genesisBlock = Block(0, "", ts, "genesis",
-    calculateHash(0, "", ts, "genesis"))
+    #genesisBlock = Block(0, "", ts, "genesis",
+    #calculateHash(0, "", ts, "genesis"))
     
